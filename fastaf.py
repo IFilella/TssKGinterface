@@ -23,8 +23,8 @@ class Homolseq(object):
         self.score=None
         self.evalue=None
         self.query=None
-        if "/" in title:
-            title=os.path.dirname(title)
+        while "/" in self.title:
+            self.title=os.path.dirname(self.title)
         if "UniRef90" in title:
             self.key=self.title.split("UniRef90_")[1].split()[0]
             self.database="uniref90"
@@ -46,7 +46,7 @@ class Homolseq(object):
                 out=os.popen(command).read()
                 self.evalue=float(out.split()[4])
                 self.score=float(out.split()[5])
-        elif searchtool=="blastp":
+        elif searchtool=="blast":
             try:
                 self.evalue=float(self.title.split()[1])
             except:
@@ -101,6 +101,8 @@ class Alignment(object):
                     line=line.split("UniRef90_")[1].split()[0]
                 elif "SGB" in line:
                     line=line.split(":")[0].split()[0]
+                else:
+                    line=line.split()[0]
                 key = line
                 sequence=""
             else:
@@ -110,7 +112,8 @@ class Alignment(object):
         else:
            sequence_no_ali=sequence.replace("-","")
            seqid = hashlib.md5(sequence_no_ali).hexdigest()
-           self.ali[key+"."+seqid]=sequence    
+           self.ali[key+"."+seqid]=sequence
+        print "Alignment with %d aligned sequences"%len(self.ali.keys()) 
 
     def write_ali(self,output):
         f=open(output,"w")
@@ -135,6 +138,19 @@ class Alignment(object):
             trimmedAli[seq]=trimmedAli[seq][selection[0]-1:selection[1]]
         return Alignment(aliname=aliname,dictionary=trimmedAli)
     
+    def get_concatenated_horizontally(self,Alignment2,spacer=""):
+        """
+        Get a new MSA by concatenating two MSA with same sequence ids.
+        A spacer can be added as a separtor in the resulting MSA
+        caveat: same size same ids order
+        """
+        alicopy=copy.copy(self.ali)
+        for k in alicopy:
+            seq2=Alignment2.ali[k]
+            seq1=alicopy[k]
+            alicopy[k]=seq1+spacer+seq2
+        return Alignment(aliname=None,dictionary=alicopy)
+
     def get_clean_EvalMSA_ali(self,Evalout,aliname=None):
         """
         Get a new alignment without EvalMSA outlaiers 'Evalout'.
@@ -169,20 +185,7 @@ class Alignment(object):
                 o=o.split("_")[1].split("/")[0]
             del cleanAli[o]
         return Alignment(aliname=aliname,dictionary=cleanAli)
-
-    def get_concatenated_horizontally(self,Alignment2,spacer=""):
-        """
-        Get a new MSA by concatenating two MSA with same sequence ids.
-        A spacer can be added as a separtor in the resulting MSA
-        caveat: same size same ids order
-        """
-        alicopy=copy.copy(self.ali)
-        for k in alicopy:
-            seq2=Alignment2.ali[k]
-            seq1=alicopy[k]
-            alicopy[k]=seq1+spacer+seq2
-        return Alignment(aliname=None,dictionary=alicopy)
-    
+ 
 
 class Fastafcont(object):
       """
@@ -242,7 +245,7 @@ class Fastaf(object):
         homolseqs.append(Homolseq(seq,title,self.searchtool,self.table))
         self.homolseqs=homolseqs
         queries=self._get_queries_title()
-        print "Searchtool: " + self.self.searchtool
+        print "Searchtool: " + self.searchtool
         print "#Homologs: " + str(len(homolseqs)-len(queries))
         if len(queries)>1:
             warnings.warn("WARNING: Multiple queries found")
@@ -250,11 +253,16 @@ class Fastaf(object):
         for query in queries:
             print query
     
-    def write_fasta(self,output):
+    def write_fasta(self,output,key=True,evalue=False):
         f=open(output,"w")
-        for se in self.homolseqs:
-            f.write(">%s\n"%se.title)
-            f.write("%s\n"%se.seq)
+        for homol in self.homolseqs:
+            if key:
+                if evalue: f.write(">%s %.2e\n"%(homol.key,homol.evalue))
+                else: f.write(">%s\n"%homol.key)
+            else:
+                if evalue: f.write(">%s %.2e\n"%(homol.title,homol.evalue))
+                else: f.write(">%s\n"%homol.title)
+            f.write("%s\n"%homol.seq)
         
     def _get_queries_title(self):
         queries = []
@@ -273,7 +281,7 @@ class Fastaf(object):
     def _get_minseq_length(self):
         queries=self._get_queries_seq()
         if len(queries)==1:
-            return int(queries[0].length/2)
+            return int(len(queries[0])/2)
         else:
             mlen=float(sum(map(len,queries))) / len(queries)
             return math.ceil(mlen/2)
@@ -281,14 +289,15 @@ class Fastaf(object):
     def _get_maxseq_length(self):
         queries=self._get_queries_seq()
         if len(queries)==1:
-            return int(queries[0].length*3/2)
+            return int(len(queries[0])*3/2)
         else:
             mlen=float(sum(map(len,queries))) / len(queries)
             return math.ceil(mlen*3/2)
     
     def do_filtbyquerylength_fasta(self):
         filtindexes=[]
-        print "#Homologs BEFORE filt by query/ies lenght: " + str(len(self.homolseqs))
+        queries=self._get_queries_seq()
+        print "#Homologs BEFORE filt by query/ies lenght: " + str(len(self.homolseqs)-len(queries))
         for i,homol in enumerate(self.homolseqs):
             if self._get_minseq_length() > homol.length or homol.length > self._get_maxseq_length():
                 filtindexes.append(i)
@@ -297,11 +306,12 @@ class Fastaf(object):
         filtindexes=sorted(filtindexes,reverse=True)
         for i in filtindexes:
             del self.homolseqs[i]
-        print "#Homologs AFTER filt by query/ies lenght: " + str(len(self.homolseqs))
+        print "#Homologs AFTER filt by query/ies lenght: " + str(len(self.homolseqs)-len(queries))
 
-    def do_filted_fasta(self,ethr=None,lthr=[None,None]):
+    def do_filt_fasta(self,ethr=None,lthr=[None,None]):
         filtindexes=[]
-        print "#Homologs BEFORE filt by lenght/e-val: " + str(len(self.homolseqs))
+        queries=self._get_queries_seq()
+        print "#Homologs BEFORE filt by lenght/e-val: " + str(len(self.homolseqs)-len(queries))
         for i,homol in enumerate(self.homolseqs):
             if ethr:
                 if homol.evalue > ethr and not homol.query:
@@ -314,11 +324,13 @@ class Fastaf(object):
         filtindexes=sorted(filtindexes,reverse=True)
         for i in filtindexes:
             del self.homolseqs[i]
-        print "#Homologs AFTER filt by lenght/e-val: " + str(len(self.homolseqs))
+        queries=self._get_queries_seq()
+        print "#Homologs AFTER filt by lenght/e-val: " + str(len(self.homolseqs)-len(queries))
 
-    def do_filtedbyquartile_fasta(self,quart=0.75):
+    def do_filtbyquartile_fasta(self,quart=0.75):
         evalues=[]
-        print "#Homologs BEFORE filt by %d best e-val: "%quart + str(len(self.homolseqs))
+        queries=self._get_queries_seq()
+        print "#Homologs BEFORE filt by %.2f best e-val: "%quart + str(len(self.homolseqs)-len(queries))
         for i,homol in enumerate(self.homolseqs):
             evalues.append((i,homol.evalue))
         evalues=sorted(evalues, key=lambda tup: tup[1])
@@ -328,7 +340,7 @@ class Fastaf(object):
         filtindex=sorted(filtindex,reverse=True)
         for i in filtindex:
             del self.homolseqs[i]
-        print "#Homologs AFTER filt by %d best e-val: " + str(len(self.homolseqs))
+        print "#Homologs AFTER filt by %.2f best e-val: "%quart + str(len(self.homolseqs)-len(queries))
     
     def get_homol_keys(self):
         keys=[]
