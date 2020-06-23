@@ -1,6 +1,7 @@
 import fastaf
-
-
+import closeness
+import pylab
+"""
 print "\n-------------------- Testing Fastaf class --------------------\n"
 hbl90=fastaf.Fastaf(fastaname="test/data/test.blast.uniref90.fa",searchtool="blast")
 hbl90.do_filtbyquerylength_fasta()
@@ -76,3 +77,36 @@ cont.add_fastaf(hja90)
 cont.add_fastaf(hjaSGB)
 cont.write_fasta(output="test/output/out.cont.fa")
 print "\n-------------------- Fastafcont class testing COMPLETE--------------------\n"
+
+"""
+print "\n-------------------- Testing closeness --------------------\n"
+ali=fastaf.Alignment(aliname="test/data/test.alignment.aln")
+seqids=[]
+for aliseq in ali.ali.keys():
+    if "TssK" in aliseq:
+        seqids.append(aliseq)
+print "Sequence to analyse: "
+print seqids
+rename={'EAEC2-TssK|eck:EC55989_3287':'EAEC2-i4b', 'ET-TssK|etr:ETAE_2441':'E.t-i4b', 'BM5;BPS4-TssK|bmal:DM55_4711':'B.m5;B.ps4-i1', 'ACB-TssK|abaz:P795_10845':'A.b-i4b', 'BPS6-TssK|bps:BPSL3110':'B.ps6-i4b', 'BC2-TssK|bceo:I35_0329':'B.c2-i4b', 'BC1-TssK|bceo:I35_4156':'B.c1-i2', 'KP1-TssK|kpu:KP1_2395':'K.p1-i2', 'YPE2;YPE3;YPS2;YPS5-TssK|ype:YPO0976':'Y.p2;Y.p3;Y.ps2;Y.ps5-i2', 'YPS3-TssK|ypi:YpsIP31758_0779':'Y.ps3-i2', 'EAEC3-TssK|eck:EC55989_3338':'EAEC3-i2', 'KP2-TssK|kpu:KP1_3387':'K.p2-i2', 'PA3-TssK|paei:N296_2437':'P.a3-i4b', 'CJ-TssK|cjl:PJ17_05100':'C.j-i1', 'SR1-TssK|serf:L085_12910':'S.m1-i3', 'YPE1;YPS6-TssK|ype:YPO0513':'Y.p1;Y.ps6-i3', 'BPS3-TssK|bps:BPSS0530':'B.ps3-i3', 'AH-TssK|ahj:V469_13135':'A.h-i1', 'VC-TssK|vcm:VCM66_A0112':'V.c-i1', 'EAEC1-TssK|eck:EC55989_0225':'EAEC1-i1', 'YPE6;YPS1-TssK|ype:YPO3597':'Y.p6;Y.ps1-i1', 'PA1-TssK|paei:N296_85':'P.a1-i3', 'AT-TssK|atf:Ach5_45010':'A.t-i5', 'PA2-TssK|paei:N296_1713':'P.a2-i1', 'BPS1-TssK|bps:BPSS0101':'B.ps1-i3', 'YE;YPE5;YPS4-TssK|yet:CH48_3197':'Y.e;Y.p5;Y.ps4-i3', 'BM2;BPS2-TssK|bmal:DM55_3873':'B.m2;B.ps2-i3', 'SEST-TssK|setc:CFSAN001921_16000':'S.Tm-i3', 'SR2-TssK|serf:L085_13805':'S.m2-i3', 'BM1;BPS5-TssK|bmal:DM55_3351':'B.m1;B.ps5-i3'}
+clusters_dic={"test/output/clusterEAEC3_PA1.fa":["EAEC3-i2","P.a1-i3"],"test/output/clusterVC.fa":["V.c-i1"]}
+subtypes=["i1","i2","i3","i4b","i5"]
+
+print "\nClustering: \n"
+#pats,seq_dict=closeness.get_clustered_bins(seqids=seqids,ali=ali,outname="test/output/out.clusterdict")
+#pats,seq_dict=closeness.get_individual_bins(seqids=seqids,ali=ali,outname="test/output/out.indvdict")
+print "\nClustering delimiter: \n"
+#pats,seq_dict=closeness.get_clustered_bins(seqids=seqids,ali=ali,delimiter="-",outname="test/output/out.clusterdict.delimited")
+#pats,seq_dict=closeness.get_individual_bins(seqids=seqids,ali=ali,delimiter="-",outname="test/output/out.indvdict.delimited")
+print "\nClustering renamed: \n"
+#pats,seq_dict=closeness.get_clustered_bins(seqids=seqids,ali=ali,rename=rename,outname="test/output/out.clusterdict.renamed")
+#closeness.write_seq_dict(seq_dict,clusters_dict=clusters_dic)
+#dfDists, dfCount = closeness.get_closeness(pats,seq_dict)
+closeness.plot_closeness_heatmap(seqids=seqids,ali=ali,rename=rename,clustering="clustered")
+closeness.plot_closeness_heatmap(seqids=seqids,ali=ali,rename=rename,clustering="individual")
+closeness.plot_closeness_heatmap(seqids=seqids,ali=ali,rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl")
+closeness.plot_closeness_heatmap(seqids=seqids,ali=ali,rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes)
+closeness.plot_closeness_heatmap(seqids=seqids,ali=ali,rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes,log=True)
+pylab.show()
+#pats,seq_dict=closeness.get_individual_bins(seqids=seqids,ali=ali,rename=rename,outname="test/output/out.indvdict.renamed")
+
+print "\n-------------------- Closeness testing COMPLETE --------------------\n"

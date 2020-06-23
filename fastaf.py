@@ -79,6 +79,7 @@ class Alignment(object):
     def __add__(self,Alignment2):
         alicopy=copy.copy(self.ali)
         alicopy.update(Alignment2.ali)
+        print "Alignment %s merged with alignment %s"%(self.aliname,Alignment2.aliname)
         return Alignment(aliname=None,dictionary=alicopy)
 
     def read_ali(self,aliname,uniqueid=False):
@@ -113,19 +114,21 @@ class Alignment(object):
            sequence_no_ali=sequence.replace("-","")
            seqid = hashlib.md5(sequence_no_ali).hexdigest()
            self.ali[key+"."+seqid]=sequence
-        print "Alignment with %d aligned sequences"%len(self.ali.keys()) 
+        print "Alignment %s with %d aligned sequences"%(self.aliname,len(self.ali.keys())) 
 
     def write_ali(self,output):
         f=open(output,"w")
         for k in self.ali:
             f.write(">"+k+"\n")
             f.write(self.ali[k]+"\n")
+        print "Alignment %s writed in aln format"%self.aliname
 
     def write_fasta(self,output):
         f=open(output,"w")
         for k in self.ali:
             f.write(">"+k+"\n")
             f.write(self.ali[k].replace("-","")+"\n")
+        print "Alignment %s printed in fasta format (without gaps)"%self.aliname
     
     def get_trimmed_ali(self,selection,aliname=None):
         """
@@ -136,8 +139,9 @@ class Alignment(object):
         trimmedAli=copy.copy(self.ali)
         for seq in trimmedAli:
             trimmedAli[seq]=trimmedAli[seq][selection[0]-1:selection[1]]
+        print "Alignment %s trimed from %d to %d"%(self.aliname,selection[0],selection[1])
         return Alignment(aliname=aliname,dictionary=trimmedAli)
-    
+        
     def get_concatenated_horizontally(self,Alignment2,spacer=""):
         """
         Get a new MSA by concatenating two MSA with same sequence ids.
@@ -149,6 +153,10 @@ class Alignment(object):
             seq2=Alignment2.ali[k]
             seq1=alicopy[k]
             alicopy[k]=seq1+spacer+seq2
+        if spacer!="":
+            print "Alignment %s concatenated with alignment %s with a spacer %s"%(self.aliname,Alignment2.aliname,spacer)
+        else:
+            print "Alignment %s concatenated with alignment %s without spacer"%(self.aliname,Alignment2.aliname)
         return Alignment(aliname=None,dictionary=alicopy)
 
     def get_clean_EvalMSA_ali(self,Evalout,aliname=None):
@@ -156,7 +164,6 @@ class Alignment(object):
         Get a new alignment without EvalMSA outlaiers 'Evalout'.
         EvalMSA is an independent software dedicated to search outliers in a given MSA.
         """
-        
         cleanAli=copy.copy(self.ali)
         fclean=open(Evalout,"r")
         outliers=[]
@@ -184,6 +191,7 @@ class Alignment(object):
             elif "UniRef90" in o:
                 o=o.split("_")[1].split("/")[0]
             del cleanAli[o]
+        print "%d outlaiers removed using EvalMSA output (from %d to %d)"%(len(self.ali.keys())-len(cleanAli.keys()),len(self.ali.keys()),len(cleanAli.keys()))
         return Alignment(aliname=aliname,dictionary=cleanAli)
  
 
@@ -196,10 +204,12 @@ class Fastafcont(object):
           self.name=name
           self.searchtools=set()
           self.fastafs=[]
-      
+          print "fastaf container %s initialized"%self.name
+
       def add_fastaf(self,fastaf):
           self.fastafs.append(fastaf)
           self.searchtools.add(fastaf.searchtool)
+          print "fastaf %s added into fastaf container %s"%(fastaf.fastaname,self.name)
       
       def write_fasta(self,output):
           f=open(output,"w")
@@ -208,6 +218,7 @@ class Fastafcont(object):
                   for se in fa.homolseqs:
                       f.write(">%s\n"%se.title)
                       f.write("%s\n"%se.seq)
+          print "fastaf container %s dumped in a fasta file"%self.name
 
 class Fastaf(object): 
     """
