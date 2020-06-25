@@ -357,11 +357,16 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
     - ali: class fastaf.Alignment. Alignment of sequences
     - delimiter: string. Used to trim the query sequence titles by a specific delimiter
     - rename: dictionary. If rename seqids are renamed according a given dictionary
+    - out: string. If out the resuting heatmap plot is saved
     - clustering: string. If 'clustered' compute clusters of aligned sequences using seqids
                           If 'individual' compute clusters of multiple copies of seqids
                           It can also be  pickable object containing a previously computed clustering
-    - rename: dictionary. If rename seqids are renamed according a given dictionary
-    - log: 
+    - subtypes: list of strings. List of theoretical subgroups where query aligned sequences belong. 
+                                 Each query title must contain its subgroup at the end of the string separated
+                                 by a "-".
+                                 WARNING: when using the delimiter/rename option to trim/modify the titles 
+                                 the subgroup information might get lost
+    - log: Boolean. If True it computes -log(1-similarity) 
     """
     if clustering=="clustered":
         pats,seq_dict=get_clustered_bins(seqids,ali,delimiter=delimiter,rename=rename)
@@ -374,6 +379,10 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
     dfDists, dfCount = get_closeness(pats,seq_dict,log=log)
     if subtypes==None:
         cg = sns.clustermap(dfDists,vmin=0,vmax=1,cmap="RdBu_r",linewidths = 0.30,metric='cityblock')
+        with open("dendogram.pkl","w") as f:
+            pickle.dump(cg,f)
+        with open("dataframe.pkl","w") as f:
+            pickle.dump(cdDists,f) 
     else:
         subtypes_pal = sns.color_palette("Set1", n_colors=len(subtypes), desat=.99)
         subtypes_lut = dict(zip(map(str, subtypes), subtypes_pal))
@@ -382,10 +391,14 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
         colscolor=[]
         rowscolor=[]
         for i,name in enumerate(zip(columnsNames,rowsNames)):
-            colsubtype=name[0].split("-")[1]
-            rowsubtype=name[1].split("-")[1]
-            colscolor.append(subtypes_lut[colsubtype])
-            rowscolor.append(subtypes_lut[rowsubtype])
+            colsubtype=name[0].split("-")[-1]
+            rowsubtype=name[1].split("-")[-1]
+            try:
+                colscolor.append(subtypes_lut[colsubtype])
+                rowscolor.append(subtypes_lut[rowsubtype])
+            except:
+                print subtypes_lut.keys()
+                raise KeyError("Query sequence title %s doesn't have one of the specified subtypes at the end followed by a '-'. Rename option can be used to add it"%(name[0]))
         dfcolcolors=pd.DataFrame({'subtype':colscolor},index=columnsNames)
         dfrowcolors=pd.DataFrame({'subtype':rowscolor},index=rowsNames)
         cg = sns.clustermap(dfDists,vmin=0,vmax=1,cmap="RdBu_r",linewidths = 0.30,metric='cityblock',col_colors=dfcolcolors, row_colors=dfrowcolors)
@@ -410,21 +423,30 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
         cg.savefig(out+".png")
     return dfDists, dfCount
 
-def get_pair_closeness(seqid1,seqid2,clustering,delimiter=None,n=10):
+def get_pair_closeness(seqid1,seqid2,clustering,rename=None,delimiter=None,n=10):
     """
     Get the closeness metric between two clusters of aligned sequences
-    - seqid1:
-    - seqid2:
-    - clustering:
-    - delimiter: 
-    - n: 
+    - seqid1: string. Aligned query sequence
+    - seqid2: string. Aligned query sequence
+    - clustering: string. Pickable object containing a previously computed clustering
+    - delimiter: string. Used to trim the query sequence titles by a specific delimiter
+    - n: integer. Compute the closness score n times to obtain an average closeness
     """
     f=open(clustering,"r")
     seq_dict=pickle.load(f)
-    pats=[seqid1.split(".")[0].split(delimiter)[0], seqid2.split(".")[0].split(delimiter)[0]]
+    pats=[None,None]
+    if rename!=None:
+        pats=[_rename(seqid1,rename),_rename(seqid2,rename)]
+    elif delimiter!=None:
+        pats=[seqid1.split(delimiter)[0], seqid2.split(delimiter)[0]]
+    else:
+        pats=[seqid1,seqid2]
     closeness=[]
-    seqs1=list(zip(*seq_dict[pats[0]]))[1]
-    seqs2=list(zip(*seq_dict[pats[1]]))[1]
+    try:
+        seqs1=list(zip(*seq_dict[pats[0]]))[1]
+        seqs2=list(zip(*seq_dict[pats[1]]))[1]
+    except:
+        raise ValueError("seqid1-2 must have the same renaming/delimiter than keys of clustering")
     for i in range(0,n):
         random_score=get_random_score(seqs1,seqs2,nsample=10)
         identical_score=get_identical_score(seqs1,seqs2)
@@ -440,59 +462,62 @@ def get_pair_closeness(seqid1,seqid2,clustering,delimiter=None,n=10):
     closeness=np.asarray(closeness)
     print "cl(" + pats[0] + "," + pats[1] + ")=" + str(np.mean(closeness)) + " +- " + str(np.std(closeness))
 
-def plot_closeness_barplot(seqidss,aligs,legend,delimiters,limsy=[0,1],out="",clusterings=None,annot=True):
+def plot_closeness_barplot(seqidss,alis,legend,delimiters,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
     """
-    Plot a barplot with the closeness of multiple bins (seqidss) on themselfs for several alignments (aligs)
+    Plot a barplot with the closeness of multiple bins (seqidss) on themselves for several alignments (aligs)
+    seqidss:
+    alis:
+    legend:
+    delimiters:
+    limsy:
+    out:
+    clustering:
+    annot:
     """
-    newpats=[]
-    for i,seqids in enumerate(seqidss):
-        for seqid in seqids:
-            pat=seqid.split(delimiters[i])[0]
-            if ";" in pat:
-                pat=pat.split(";")
-                for p in pat:
-                    if p.split(".")[0] not in newpats: newpats.append(p.split(".")[0])
-            else:
-                if pat.split(".")[0] not in newpats: newpats.append(pat.split(".")[0])
     #All barplots in a single figure
+    newpats = seqidss.keys()
     fig, ax = plt.subplots()
-    rects= [None] * len(seqidss)
+    rects= [None] * len(alis)
     labels=[]
     total_width=0.8
     single_width=1.
-    n_bars = len(seqidss)
+    n_bars = len(alis)
     bar_width = total_width / n_bars
     r = np.array(range(len(newpats)))+1
-    x_offsets = [(j - n_bars / 2) * bar_width + bar_width / 2 for j in range(len(seqidss))]
-    for i,(seqids,alig,delimiter) in enumerate(zip(seqidss,aligs,delimiters)):
+    x_offsets = [(j - n_bars / 2) * bar_width + bar_width / 2 for j in range(len(alis))]
+    for i,(ali,delimiter) in enumerate(zip(alis,delimiters)):
         print legend[i]
         bardata=[]
+        seqids=[]
+        for k in seqidss.keys():
+            if seqidss[k][i]!=None: seqids.append(seqidss[k][i])
+        seqids=list(set(seqids))
         if clusterings==None:
-            pats,seq_dict=get_clustered_bins(seqids,alig,delimiter,out=legend[i]+"."+str(len(newpats))+"."+".seq_dict",re=re)
+            pats,seq_dict=get_clustered_bins(seqids,ali,delimiter)
         else:
             f=open(clusterings[i],"r")
             seq_dict=pickle.load(f)
-            pats= seq_dict.keys()
+            pats=seq_dict.keys()
         dfDists, dfCount = get_closeness(pats,seq_dict,isdiagonal=True)
         for npat in newpats:
             aux=False
-            org = ''.join([j for j in npat if not j.isdigit()])
-            npatre = npat.replace(org,rename[org])
             for col in dfDists.columns:
-                if npatre in col:
-                    npat= npatre+ " - " + subtype[npat]
+                if npat in col:
                     if dfCount[col][col] < clim:
                         bardata.append((npat, 0, dfCount[col][col]))
                     else:
                         bardata.append((npat, dfDists[col][col], dfCount[col][col]))
                     aux=True
+                    break
             if aux==False:
-                npat= npatre+ " - " + subtype[npat]
                 bardata.append((npat, 0, 0))
         #All barplots in a single figure
-        print bardata
-        color=[ccolor(legend[i])]*len(newpats)
-        rects[i]=ax.bar(x_offsets[i]+r,list(zip(*bardata))[1],width=bar_width * single_width,label=legend[i],color=color)
+        if colors!=None:
+            ccolor = lambda x: colors[legend.index(x)]
+            color=[ccolor(legend[i])]*len(newpats)
+            rects[i]=ax.bar(x_offsets[i]+r,list(zip(*bardata))[1],width=bar_width * single_width,label=legend[i],color=color)
+        else:
+            rects[i]=ax.bar(x_offsets[i]+r,list(zip(*bardata))[1],width=bar_width * single_width,label=legend[i])
         labels.append(list(zip(*bardata))[2])
         print "------------------------------------------------------------------" 
     ax.set_ylabel('Conservation level')
@@ -502,7 +527,6 @@ def plot_closeness_barplot(seqidss,aligs,legend,delimiters,limsy=[0,1],out="",cl
     ax.set_xticklabels(list(zip(*bardata))[0])#,rotation='vertical')
     ax.set_ylim(bottom=limsy[0], top=limsy[1])
     ax.legend()
-    #plt.axhline(y=1,color='r', linestyle='-')
     if annot==True:
         for i in range(len(labels)):
             for rect,label in zip(rects[i],labels[i]):
@@ -513,9 +537,10 @@ def plot_closeness_barplot(seqidss,aligs,legend,delimiters,limsy=[0,1],out="",cl
                             textcoords="offset points",
                             ha='center', va='bottom')
     fig.tight_layout()
-    fig.savefig("plot/barplot.%s.png"%(out))
+    if out!=None:
+        fig.savefig("test/output/"+out+".png")
 
-def plot_closeness_barplots(seqidss,aligs,legend,delimiters,limsy=[0,1],out="",clusterings=None,annot=True):
+def plot_closeness_barplots(seqidss,alis,legend,delimiters,limsy=[0,1],out="",clusterings=None,annot=True):
     newpats=[]
     data=[]
     color=[]
@@ -530,7 +555,7 @@ def plot_closeness_barplots(seqidss,aligs,legend,delimiters,limsy=[0,1],out="",c
                     if p.split(".")[0] not in newpats: newpats.append(p.split(".")[0])
             else:
                 if pat.split(".")[0] not in newpats: newpats.append(pat.split(".")[0])
-    for i,(seqids,alig,delimiter) in enumerate(zip(seqidss,aligs,delimiters)):
+    for i,(seqids,alig,delimiter) in enumerate(zip(seqidss,alis,delimiters)):
         print legend[i]
         bardata={}
         if clusterings==None:
