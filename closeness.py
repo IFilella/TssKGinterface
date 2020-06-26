@@ -23,10 +23,6 @@ aalist = list('ACDEFGHIKLMNPQRSTVWXY|-')
 clim=5
 mixvec=True
 
-#enmax_palette = ["#F8EE9A", "#EE238E", "#455676","#FF8300","#67FF79","#67EFFF","#E8C7DE","#BCAF9C"]
-#color_codes_wanted = ["TssK","TssG","TssB","TssK-NTD","TssG foot1","TssG foot2","NT foot1","NT foot2"]
-#ccolor = lambda x: enmax_palette[color_codes_wanted.index(x)]
-
 def _blosum_match(pair, matrix):
     if pair not in matrix:
         return matrix[(tuple(reversed(pair)))]
@@ -207,7 +203,7 @@ def get_random_score(bin1,bin2,nsample,bootstrap=1.0):
 
 def get_clustered_bins(seqids,ali,delimiter=None,rename=None,outname=None):
     """
-    Get clusters of aligned sequences by assigning them to one of the query sequences
+    Get clusters of aligned sequences by assigning them to one of the query aligned sequences
     according to the substitution matrix score. Clusters are reduced up to 0.75 best 
     scoring.
     - seqids: list of strings. Aligned query sequences
@@ -259,7 +255,7 @@ def get_clustered_bins(seqids,ali,delimiter=None,rename=None,outname=None):
 
 def get_individual_bins(seqids,ali,n=100,delimiter=None,rename=None,outname=None):
     """
-    Get clusters of identical aligned sequences where each cluster contain n copies of a single query.
+    Get clusters of identical aligned sequences where each cluster contain n copies of a single aligned query.
     - seqids: list of strings. Aligned query sequences
     - ali: class fastaf.Alignment. Alignment of sequences
     - n: integer. Number of query copies per query cluster
@@ -288,7 +284,7 @@ def get_individual_bins(seqids,ali,n=100,delimiter=None,rename=None,outname=None
 
 def write_seq_dict(seq_dict,clusters_dict):
     '''
-    Write the sequences of single or combination of clusters of aligned sequence into multiple files. 
+    Write the aligned sequences of single or combination of clusters into multiple files. 
     The clusters and/or combinations of clusters are given by a diccionary where its keys are
     filenames and its values a list of the bins to be added per file.
     - seq_dict: dictionary. Clusters of aligned sequences per query sequence
@@ -357,7 +353,7 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
     - ali: class fastaf.Alignment. Alignment of sequences
     - delimiter: string. Used to trim the query sequence titles by a specific delimiter
     - rename: dictionary. If rename seqids are renamed according a given dictionary
-    - out: string. If out the resuting heatmap plot is saved
+    - out: string. Output name for the figure (png format) 
     - clustering: string. If 'clustered' compute clusters of aligned sequences using seqids
                           If 'individual' compute clusters of multiple copies of seqids
                           It can also be  pickable object containing a previously computed clustering
@@ -462,19 +458,18 @@ def get_pair_closeness(seqid1,seqid2,clustering,rename=None,delimiter=None,n=10)
     closeness=np.asarray(closeness)
     print "cl(" + pats[0] + "," + pats[1] + ")=" + str(np.mean(closeness)) + " +- " + str(np.std(closeness))
 
-def plot_closeness_barplot(seqidss,alis,legend,delimiters,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
+def plot_closeness_barplot(seqidss,alis,legend,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
     """
-    Plot a barplot with the closeness of multiple bins (seqidss) on themselves for several alignments (aligs)
-    seqidss:
-    alis:
-    legend:
-    delimiters:
-    limsy:
-    out:
-    clustering:
-    annot:
+    Plot a barplot for several alignments of different genes where multiple organisms are represented as query aligned sequences. Each bar represents the closeness per cluster of aligned sequences on itself (conservation level)
+    - seqidss: dictionary. Dictionary were the keys are organism identifiers and values are list of query aligned sequences per each one of the alignments representing an specific gene e.g {"organism1":["GENE1title","GEN2title","GENE3title"], "organism2":["GENE1title","GENE2title",None]}
+    - alis: list. List of alignments e.g [GENE1ali,GENE2ali]
+    - legend: list. Names to be display per each one of the alignments e.g ["GENE1","GENE2"]
+    - colors: list. Color per alignment in RGB format e.g ["#FF8300","#F8EE9A"]
+    - limsy: list. Two element list where the first element is the y-axis inferior limit and the second the superior limit. [0,1] by default
+    - out: string. Output name for the figure (png format)
+    - clusterings: list. Pickable objects containing previously computed clusterings per each one of the alignments e.g ["GENE1clustering.pkl","GENE2clustering.pkl"]
+    - annot: boleean. If true, the number of element per each cluster of aligned sequences is display at the top of the bars
     """
-    #All barplots in a single figure
     newpats = seqidss.keys()
     fig, ax = plt.subplots()
     rects= [None] * len(alis)
@@ -485,7 +480,7 @@ def plot_closeness_barplot(seqidss,alis,legend,delimiters,colors=None,limsy=[0,1
     bar_width = total_width / n_bars
     r = np.array(range(len(newpats)))+1
     x_offsets = [(j - n_bars / 2) * bar_width + bar_width / 2 for j in range(len(alis))]
-    for i,(ali,delimiter) in enumerate(zip(alis,delimiters)):
+    for i,ali in enumerate(alis):
         print legend[i]
         bardata=[]
         seqids=[]
@@ -493,7 +488,7 @@ def plot_closeness_barplot(seqidss,alis,legend,delimiters,colors=None,limsy=[0,1
             if seqidss[k][i]!=None: seqids.append(seqidss[k][i])
         seqids=list(set(seqids))
         if clusterings==None:
-            pats,seq_dict=get_clustered_bins(seqids,ali,delimiter)
+            pats,seq_dict=get_clustered_bins(seqids,ali)
         else:
             f=open(clusterings[i],"r")
             seq_dict=pickle.load(f)
@@ -540,26 +535,29 @@ def plot_closeness_barplot(seqidss,alis,legend,delimiters,colors=None,limsy=[0,1
     if out!=None:
         fig.savefig("test/output/"+out+".png")
 
-def plot_closeness_barplots(seqidss,alis,legend,delimiters,limsy=[0,1],out="",clusterings=None,annot=True):
-    newpats=[]
+def plot_closeness_barplots(seqidss,alis,legend,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
+    """
+    Plot individual barplots per organism with different genes coming from several independent alignmentson on it. Each bar represents the closeness per cluster of aligned sequences on itself (conservation level)
+    - seqidss: dictionary. Dictionary were the keys are the organism identifiers and values are list of query aligned sequences per each one of the alignments representing an specific gene e.g {"organism1":["GENE1title","GEN2title","GENE3title"], "organism2":["GENE1title","GENE2title",None]}
+    - alis: list. List of alignments e.g [GENE1ali,GENE2ali]
+    - legend: list. Names to be display per each one of the alignments e.g ["GENE1","GENE2"]
+    - colors: list. Color per alignment in RGB format e.g ["#FF8300","#F8EE9A"]
+    - limsy: list. Two element list where the first element is the y-axis inferior limit and the second the superior limit. [0,1] by default
+    - out: string. Output name for the figure (png format)
+    - clusterings: list. Pickable objects containing previously computed clusterings per each one of the alignments e.g ["GENE1clustering.pkl","GENE2clustering.pkl"]
+    - annot: boleean. If true, the number of element per each cluster of aligned sequences is display at the top of the bars 
+    """
+    newpats = seqidss.keys()
     data=[]
-    color=[]
-    for prot in legend:
-        color.append(ccolor(prot))
-    for i,seqids in enumerate(seqidss):
-        for seqid in seqids:
-            pat=seqid.split(delimiters[i])[0]
-            if ";" in pat:
-                pat=pat.split(";")
-                for p in pat:
-                    if p.split(".")[0] not in newpats: newpats.append(p.split(".")[0])
-            else:
-                if pat.split(".")[0] not in newpats: newpats.append(pat.split(".")[0])
-    for i,(seqids,alig,delimiter) in enumerate(zip(seqidss,alis,delimiters)):
+    for i,alig in enumerate(alis):
         print legend[i]
         bardata={}
+        seqids=[]
+        for k in seqidss.keys():
+            if seqidss[k][i]!=None: seqids.append(seqidss[k][i])
+        seqids=list(set(seqids))
         if clusterings==None:
-            pats,seq_dict=get_cluster_bins(seqids,alig,delimiter,out=legend[i]+"."+str(len(newpats))+"."+".seq_dict",re=re)
+            pats,seq_dict=get_clustered_bins(seqids,alig)
         else:
             f=open(clusterings[i],"r")
             seq_dict=pickle.load(f)
@@ -567,18 +565,15 @@ def plot_closeness_barplots(seqidss,alis,legend,delimiters,limsy=[0,1],out="",cl
         dfDists, dfCount = get_closeness(pats,seq_dict,isdiagonal=True)
         for npat in newpats:
             aux=False
-            org = ''.join([j for j in npat if not j.isdigit()])
-            npatre = npat.replace(org,rename[org])
             for col in dfDists.columns:
-                if npatre in col:
-                    npat= npatre+ " - " + subtype[npat]
+                if npat in col:
                     if dfCount[col][col] < clim:
                         bardata[npat]=(0, dfCount[col][col])
                     else:
                         bardata[npat]=(dfDists[col][col], dfCount[col][col])
                     aux=True
+                    break
             if aux==False:
-                npat= npatre+ " - " + subtype[npat]
                 bardata[npat]=(0, 0)
         data.append(bardata)
     if len(newpats) % 6 == 0: rows=len(newpats)/6
@@ -590,13 +585,13 @@ def plot_closeness_barplots(seqidss,alis,legend,delimiters,limsy=[0,1],out="",cl
             values.append(prot[pat][0])
         print pat,zip(legend,values)
         ax = fig.add_subplot(rows, 6, j+1)
-        ax.bar(legend,values,color=color)
+        ax.bar(legend,values,color=colors)
         ax.set_ylabel('Conservation level',fontsize=17)
         ax.set_title('%s'%pat,fontsize=20)
         ax.set_ylim(0, 1)
         x0,x1 = ax.get_xlim()
         y0,y1 = ax.get_ylim()
         ax.xaxis.set_visible(False)
-        #ax.yaxis.set_visible(False)
         ax.set_aspect(abs(x1-x0)/abs(y1-y0))
-    fig.savefig("plot/barplot.%s.png"%(out),bbox_inches='tight')
+    if out!=None:
+        fig.savefig("test/output/%s.png"%(out),bbox_inches='tight')
