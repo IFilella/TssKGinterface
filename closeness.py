@@ -375,10 +375,6 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
     dfDists, dfCount = get_closeness(pats,seq_dict,log=log)
     if subtypes==None:
         cg = sns.clustermap(dfDists,vmin=0,vmax=1,cmap="RdBu_r",linewidths = 0.30,metric='cityblock')
-        with open("dendogram.pkl","w") as f:
-            pickle.dump(cg,f)
-        with open("dataframe.pkl","w") as f:
-            pickle.dump(cdDists,f) 
     else:
         subtypes_pal = sns.color_palette("Set1", n_colors=len(subtypes), desat=.99)
         subtypes_lut = dict(zip(map(str, subtypes), subtypes_pal))
@@ -457,6 +453,7 @@ def get_pair_closeness(seqid1,seqid2,clustering,rename=None,delimiter=None,n=10)
         closeness.append(close)
     closeness=np.asarray(closeness)
     print "cl(" + pats[0] + "," + pats[1] + ")=" + str(np.mean(closeness)) + " +- " + str(np.std(closeness))
+    return [np.mean(closeness),np.std(closeness)]
 
 def plot_closeness_barplot(seqidss,alis,legend,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
     """

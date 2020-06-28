@@ -1,86 +1,92 @@
 import fastaf
 import closeness
 import pylab
+import os
 
-"""
+
 print "\n-------------------- Testing Fastaf class --------------------\n"
-hbl90=fastaf.Fastaf(fastaname="test/data/test.blast.uniref90.fa",searchtool="blast")
+hbl90=fastaf.Fastaf(fastaname="test/data/test.blast.fa",searchtool="blast")
+if len(hbl90.homolseqs) != 5770: raise ValueError("ERROR: while reading fastaf")
 hbl90.do_filtbyquerylength_fasta()
+if len(hbl90.homolseqs) != 5302: raise ValueError("ERROR: in do_filtbyquery")
 hbl90.do_filt_fasta(ethr=1.e-30)
+if len(hbl90.homolseqs) != 3660: raise ValueError("ERROR: in do_filt_fasta")
 hbl90.do_filt_fasta(lthr=[350,490])
+if len(hbl90.homolseqs) != 3418: raise ValueError("ERROR: in do_filt_fasta")
 hbl90.do_filtbyquartile_fasta()
+if len(hbl90.homolseqs) != 2563: raise ValueError("ERROR: in do_filtbyquartile")
 hbl90.do_shuffle_homolseqs()
-hbl90.write_fasta(output="test/output/out.blast.uniref90.fa",evalue=True)
+if len(hbl90.homolseqs) != 2563: raise ValueError("ERROR: in do_shuffle_homolseqs")
+hbl90.write_fasta(output="test/output/out.blast.fa",evalue=True)
+aux = os.popen('grep ">" test/output/out.blast.fa | wc').read()
+if int(aux.split()[0]) != 2563: raise ValueError("ERROR: in write_fasta")
 print "\n"
-hblSGB=fastaf.Fastaf(fastaname="test/data/test.blast.SGB.fa",searchtool="blast")
-hblSGB.do_filtbyquerylength_fasta()
-hblSGB.do_filt_fasta(ethr=1.e-30)
-hblSGB.do_filt_fasta(lthr=[350,490])
-hblSGB.do_filtbyquartile_fasta()
-hblSGB.do_shuffle_homolseqs()
-hblSGB.write_fasta(output="test/output/out.blast.SGB.fa")
-print "\n"
-hmulti=fastaf.Fastaf(fastaname="test/data/test.mutiquery.fa",searchtool="blast")
-hmulti.do_filtbyquerylength_fasta()
-hmulti.do_filt_fasta(ethr=1.e-30)
-hmulti.do_filt_fasta(lthr=[350,490])
-hmulti.do_filtbyquartile_fasta()
-hmulti.do_shuffle_homolseqs()
-hmulti.write_fasta(output="test/output/out.multiquey.fa")
-print "\n"
-hja90=fastaf.Fastaf(fastaname="test/data/test.jack.uniref90.fa",searchtool="jackhmmer",table="test/data/test.jack.uniref90.table")
+hja90=fastaf.Fastaf(fastaname="test/data/test.jack.fa",searchtool="jackhmmer",table="test/data/test.jack.table")
+if len(hja90.homolseqs) != 8365: raise ValueError("ERROR: while reading fastaf")
 hja90.do_filtbyquerylength_fasta()
+if len(hja90.homolseqs) != 7813: raise ValueError("ERROR: in do_filtbyquery")
 hja90.do_filt_fasta(ethr=1.e-30)
+if len(hja90.homolseqs) != 7475: raise ValueError("ERROR: in do_filt_fasta")
 hja90.do_filt_fasta(lthr=[350,490])
+if len(hja90.homolseqs) != 6519: raise ValueError("ERROR: in do_filt_fasta")
 hja90.do_filtbyquartile_fasta()
-hja90.write_fasta(output="test/output/out.jack.uniref90.fa")
+if len(hja90.homolseqs) != 4889: raise ValueError("ERROR: in do_filtbyquartile_fasta")
 hja90.do_shuffle_homolseqs()
-print "\n"
-hjaSGB=fastaf.Fastaf(fastaname="test/data/test.jack.SGB.fa",searchtool="jackhmmer",table="test/data/test.jack.SGB.table")
-hjaSGB.do_filtbyquerylength_fasta()
-hjaSGB.do_filt_fasta(ethr=1.e-30)
-hjaSGB.do_filt_fasta(lthr=[350,490])
-hjaSGB.do_filtbyquartile_fasta()
-hjaSGB.write_fasta(output="test/output/out.jack.SGB.fa")
-hjaSGB.do_shuffle_homolseqs()
-print "\n"
+if len(hja90.homolseqs) != 4889: raise ValueError("ERROR: in do_shuffle_homolseqs")
+hja90.write_fasta(output="test/output/out.jack.fa")
+aux = os.popen('grep ">" test/output/out.jack.fa | wc').read()
+if int(aux.split()[0]) != 4889: raise ValueError("ERROR: in write_fasta")
 print "\n-------------------- Fastaf class testing COMPLETE--------------------\n"
 
 
 print "\n-------------------- Testing Alignment class --------------------\n"
 ali=fastaf.Alignment(aliname="test/data/test.alignment.aln")
+if len(ali.ali.keys())!= 2536: raise ValueError("ERROR: while reading Alignment")
 ali.write_ali(output="test/output/out.alignment.aln")
+aux = os.popen('grep ">" test/output/out.alignment.aln | wc').read()
+if int(aux.split()[0])!= 2536: raise ValueError("ERROR: in write_ali")
 ali.write_fasta(output="test/output/out.alignment.fa")
-ali1to20=ali.get_trimmed_ali(selection=[1,20])
-ali50to70=ali.get_trimmed_ali(selection=[50,70])
+aux = os.popen('grep ">" test/output/out.alignment.fa | wc').read()
+if int(aux.split()[0])!= 2536: raise ValueError("ERROR: in write_fasta")
+ali1to20=ali.get_trimmed_ali(selection=[1,8])
+if ali1to20.ali["EAEC3-TssK|eck:EC55989_3338"]!="MKIYRPLW": raise ValueError("ERROR: in get_trimmed_ali")
+ali50to70=ali.get_trimmed_ali(selection=[15,25])
+if ali50to70.ali["EAEC3-TssK|eck:EC55989_3338"]!="MPQQFQQQAAW": raise ValueError("ERROR: in get_trimmed_ali")
 aliconc1=ali1to20.get_concatenated_horizontally(Alignment2=ali50to70)
+if aliconc1.ali["EAEC3-TssK|eck:EC55989_3338"]!="MKIYRPLWMPQQFQQQAAW": raise ValueError("ERROR: in get_concatenated_horizontally")
 aliconc1.write_ali(output="test/output/out.alignment.conc1.aln")
+aux = os.popen('grep ">" test/output/out.alignment.conc1.aln | wc').read()
+if int(aux.split()[0])!= 2536: raise ValueError("ERROR: in write_ali or get_concatenated_horizontally")
 aliconc2=ali1to20.get_concatenated_horizontally(Alignment2=ali50to70,spacer="WCKWCKWCK")
+if aliconc2.ali["EAEC3-TssK|eck:EC55989_3338"]!="MKIYRPLWWCKWCKWCKMPQQFQQQAAW": raise ValueError("ERROR: in get_concatenated_horizontally")
 aliconc2.write_ali(output="test/output/out.alignment.conc2.aln")
+aux = os.popen('grep ">" test/output/out.alignment.conc1.aln | wc').read()
+if int(aux.split()[0])!= 2536: raise ValueError("ERROR: in write_ali or get_concatenated_horizontally")
 aliclean=ali.get_clean_EvalMSA_ali(Evalout="test/data/test.EvalMSA.out")
+if len(aliclean.ali.keys())!=2273: raise ValueError("ERROR: in get_clean_EvalMSA_ali")
+try:
+    aliclean.ali["A0A318MPE3"]
+    raise ValueError("ERROR: in get_clean_EvalMSA_ali")
+except:
+    pass
 aliclean.write_ali(output="test/output/out.alignment.clean.aln")
-print "\n"
 aliid=fastaf.Alignment(aliname="test/data/test.alignment.aln",uniqueid=True)
+if len(aliid.ali.keys())!=2536 or len(aliid.ali.keys()[0].split("."))<=1: raise  ValueError("ERROR: in reading Alignment class with uniqueid")
 aliid.write_ali(output="test/output/out.alignmentid.aln")
 aliid.write_fasta(output="test/output/out.alignmentid.fa")
-print "\n"
 aliupd=ali.__add__(Alignment2=aliid)
-print len(aliupd.ali.keys())
-print "\n"
+if len(aliupd.ali.keys())!=5072: raise ValueError("ERROR: in __add__ inside Alignment class")
 print "\n-------------------- Alignment class testing COMPLETE--------------------\n"
 
 
 print "\n-------------------- Testing Fastafcont class --------------------\n"
 cont=fastaf.Fastafcont(name="test")
 cont.add_fastaf(hbl90)
-cont.add_fastaf(hblSGB)
 cont.add_fastaf(hja90)
-cont.add_fastaf(hjaSGB)
 cont.write_fasta(output="test/output/out.cont.fa")
 print "\n-------------------- Fastafcont class testing COMPLETE--------------------\n"
 
 
-"""
 print "\n-------------------- Testing closeness --------------------\n"
 ali1=fastaf.Alignment(aliname="test/data/test.alignment1.aln")
 ali2=fastaf.Alignment(aliname="test/data/test.alignment2.aln")
@@ -125,31 +131,47 @@ for pat in pathogens:
                 break
         if not aux: seqidspat.append(None)
     seqidspats[pat]=seqidspat
-"""
+
 print "\nClustering: \n"
 pats,seq_dict=closeness.get_clustered_bins(seqids=seqidss[0],ali=alis[0],outname="test/output/out.clusterdict")
+if len(pats)!=30 or len(seq_dict["EAEC3-TssK|eck:EC55989_3338"])!=46: raise ValueError("ERROR: in get_clustered_bins")
 pats,seq_dict=closeness.get_individual_bins(seqids=seqidss[0],ali=alis[0],outname="test/output/out.indvdict")
+if len(pats)!=30 or len(seq_dict["EAEC3-TssK|eck:EC55989_3338"])!=100: raise ValueError("ERROR: in get_clustered_bins")
 
 print "\nClustering delimiter: \n"
 pats,seq_dict=closeness.get_clustered_bins(seqids=seqidss[0],ali=alis[0],delimiter=delimiters[0],outname="test/output/out.clusterdict.delimited")
+if len(pats)!=30 or len(seq_dict["EAEC3"])!=46: raise ValueError("ERROR: in get_individual_bins")
 pats,seq_dict=closeness.get_individual_bins(seqids=seqidss[0],ali=alis[0],delimiter=delimiters[0],outname="test/output/out.indvdict.delimited")
+if len(pats)!=30 or len(seq_dict["EAEC3"])!=100: raise ValueError("ERROR: in get_individual_bins")
 
 print "\nClustering renamed: \n"
 pats,seq_dict=closeness.get_clustered_bins(seqids=seqidss[0],ali=alis[0],rename=rename,outname="test/output/out.clusterdict.renamed")
+if len(pats)!=30 or len(seq_dict["EAEC3-i2"])!=46: raise ValueError("ERROR: in get_individual_bins")
 closeness.write_seq_dict(seq_dict,clusters_dict=clusters_dic)
+aux1 = os.popen('grep ">" test/output/clusterEAEC3_PA1.fa | wc').read()
+aux2 = os.popen('grep ">" test/output/clusterVC.fa | wc').read()
+if int(aux1.split()[0])!=593 or int(aux2.split()[0])!=64: raise ValueError("ERROR: in write_seq_dict")
 dfDists, dfCount = closeness.get_closeness(pats,seq_dict)
+columnsNames = dfDists.columns.values
+rowsNames = dfDists.index.values
+for c in columnsNames:
+    for r in rowsNames:
+        print dfDists[c][r]
+        if dfDists[c][r]<0 or dfDists[c][r]>1: raise ValueError("ERROR: in get_closenesss")
 pats,seq_dict=closeness.get_individual_bins(seqids=seqidss[0],ali=alis[0],rename=rename,outname="test/output/out.indvdict.renamed")
-closeness.get_pair_closeness(seqid1='EAEC2-TssK|eck:EC55989_3287',seqid2='ACB-TssK|abaz:P795_10845',clustering="test/data/test.seq_dict.pkl",rename=rename,n=10)
-"""
+if len(pats)!=30 or len(seq_dict["EAEC3-i2"])!=100: raise ValueError("ERROR: in get_individual_bins")
+pair=closeness.get_pair_closeness(seqid1='EAEC2-TssK|eck:EC55989_3287',seqid2='ACB-TssK|abaz:P795_10845',clustering="test/data/test.seq_dict.pkl",rename=rename,n=10)
+if pair[0]<0 or pair[0]>1: raise ValueError("ERROR: in get_pair_closeness")
+
 
 print "\nPlots: \n"
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="clustered")
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="individual")
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl")
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes)
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes,log=True)
-#closeness.plot_closeness_barplot(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="barplot")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="clustered")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="individual")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes)
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,out="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes,log=True)
+closeness.plot_closeness_barplot(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="barplot")
 closeness.plot_closeness_barplots(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="barplots")
 pylab.show()
-
 print "\n-------------------- Closeness testing COMPLETE --------------------\n"
+
