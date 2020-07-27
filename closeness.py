@@ -346,14 +346,15 @@ def get_closeness(pats,seq_dict,isdiagonal=False,log=False):
     dfCount=pd.DataFrame(intersectCount,columns=pats,index=pats)
     return dfDists, dfCount
 
-def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,clustering=None,subtypes=None,log=False):
+def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,pout=None,ddout=None,clustering=None,subtypes=None,log=False):
     """
     Plot the closeness hetamap. Each cell is the closeness between two clusters of aligned sequences.
     - seqids: list of strings. Aligned query sequences
     - ali: class fastaf.Alignment. Alignment of sequences
     - delimiter: string. Used to trim the query sequence titles by a specific delimiter
     - rename: dictionary. If rename seqids are renamed according a given dictionary
-    - out: string. Output name for the figure (png format) 
+    - pout: string. Output name for the figure (png format) 
+    - ddout: string. Output name for the resulting dendrogram and dataframe
     - clustering: string. If 'clustered' compute clusters of aligned sequences using seqids
                           If 'individual' compute clusters of multiple copies of seqids
                           It can also be  pickable object containing a previously computed clustering
@@ -397,12 +398,14 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
         for label in subtypes:
             cg.ax_col_dendrogram.bar(0, 0, color=subtypes_lut[label],label=label, linewidth=0)
             cg.ax_col_dendrogram.legend(loc="best", bbox_to_anchor=(0, 1.2) ,ncol=1)
-    if out!=None:
-        if log:
-            cg.savefig(out+".log.png")
-        else:
-            cg.savefig(out+".png")
     if log:
+        if pout!=None:
+            cg.savefig(pout+".log.png")
+        if ddout!=None:
+            with open("dendro.%s.log.pkl"%ddout,"w") as f:
+                pickle.dump(cg,f)
+            with open("dataframe.%s.log.pkl"%out,"w") as f:
+                pickle.dump(dfDists,f)
         idxr=cg.dendrogram_row.reordered_ind
         idxc=cg.dendrogram_col.reordered_ind
         dfDists, dfCount = get_closeness(pats,seq_dict)
@@ -412,7 +415,14 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,out=None,cluste
         rowsNames = [rowsNames[i] for i in idxr]
         dfDists=dfDists.reindex(columns=columnsNames,index=rowsNames)
         cg = sns.clustermap(dfDists,vmin=0,vmax=1,cmap="RdBu_r",linewidths = 0.30,metric='cityblock',col_colors=dfcolcolors, row_colors=dfrowcolors, row_cluster=False,col_cluster=False)
-        cg.savefig(out+".png")
+    else:
+        if pout!=None:
+            cg.savefig(pout+".png")
+        if ddout!=None:
+            with open("dendro.%s.pkl"%ddout,"w") as f:
+                pickle.dump(cg,f)
+            with open("dataframe.%s.pkl"%ddout,"w") as f:
+                pickle.dump(dfDists,f)
     return dfDists, dfCount
 
 def get_pair_closeness(seqid1,seqid2,clustering,rename=None,delimiter=None,n=10):
