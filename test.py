@@ -3,7 +3,7 @@ import closeness
 import pylab
 import os
 
-"""
+
 print "\n-------------------- Testing Fastaf class --------------------\n"
 hbl90=fastaf.Fastaf(fastaname="test/data/test.blast.fa",searchtool="blast")
 if len(hbl90.homolseqs) != 5770: raise ValueError("ERROR: while reading fastaf")
@@ -85,7 +85,7 @@ cont.add_fastaf(hbl90)
 cont.add_fastaf(hja90)
 cont.write_fasta(output="test/output/out.cont.fa")
 print "\n-------------------- Fastafcont class testing COMPLETE--------------------\n"
-"""
+
 
 print "\n-------------------- Testing closeness --------------------\n"
 ali1=fastaf.Alignment(aliname="test/data/test.alignment1.aln")
@@ -131,7 +131,7 @@ for pat in pathogens:
                 break
         if not aux: seqidspat.append(None)
     seqidspats[pat]=seqidspat
-"""
+
 print "\nClustering: \n"
 pats,seq_dict=closeness.get_clustered_bins(seqids=seqidss[0],ali=alis[0],outname="test/output/out.clusterdict")
 if len(pats)!=30 or len(seq_dict["EAEC3-TssK|eck:EC55989_3338"])!=46: raise ValueError("ERROR: in get_clustered_bins")
@@ -162,11 +162,11 @@ pats,seq_dict=closeness.get_individual_bins(seqids=seqidss[0],ali=alis[0],rename
 if len(pats)!=30 or len(seq_dict["EAEC3-i2"])!=100: raise ValueError("ERROR: in get_individual_bins")
 pair=closeness.get_pair_closeness(seqid1='EAEC2-TssK|eck:EC55989_3287',seqid2='ACB-TssK|abaz:P795_10845',clustering="test/data/test.seq_dict.pkl",rename=rename,n=10)
 if pair[0]<0 or pair[0]>1: raise ValueError("ERROR: in get_pair_closeness")
-"""
+
 
 print "\nPlots: \n"
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="clustered")
-#closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="individual")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="clustered")
+closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clustering="individual")
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl")
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes)
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes,log=True)
