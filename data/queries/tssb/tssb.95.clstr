@@ -1,0 +1,68 @@
+>Cluster 0
+0	193aa, >BM2-TssB|bmal:DM55_... *
+1	193aa, >BPS2-TssB|bps:BPSS0... at 99.48%
+>Cluster 1
+0	192aa, >BM1-TssB|bmal:DM55_... *
+1	192aa, >BPS5-TssB|bps:BPSS2... at 98.96%
+>Cluster 2
+0	192aa, >KP1-TssB|kpu:KP1_23... *
+>Cluster 3
+0	186aa, >YPE1-TssB|ype:YPO05... *
+1	186aa, >YPS6-TssB|ypi:YpsIP... at 100.00%
+>Cluster 4
+0	185aa, >SR1-TssB|serf:L085_... *
+>Cluster 5
+0	182aa, >BM4-TssB|bmal:DM55_... *
+1	182aa, >BPS3-TssB|bps:BPSS0... at 100.00%
+>Cluster 6
+0	181aa, >PA3-TssB|paei:N296_... *
+>Cluster 7
+0	180aa, >SEST-TssB|setc:CFSA... *
+>Cluster 8
+0	179aa, >BPS1-TssB|bps:BPSS0... *
+>Cluster 9
+0	178aa, >SR2-TssB|serf:L085_... *
+>Cluster 10
+0	174aa, >YE-TssB|yet:CH48_31... *
+1	174aa, >YPE5-TssB|ype:YPO29... at 95.40%
+2	174aa, >YPS4-TssB|ypi:YpsIP... at 95.40%
+>Cluster 11
+0	173aa, >EAEC3-TssB|eck:EC55... *
+>Cluster 12
+0	172aa, >BPS6-TssB|bps:BPSL3... *
+>Cluster 13
+0	172aa, >PA1-TssB|paei:N296_... *
+>Cluster 14
+0	171aa, >BC2-TssB|bceo:I35_0... *
+>Cluster 15
+0	170aa, >BC1-TssB|bceo:I35_4... *
+>Cluster 16
+0	169aa, >AT-TssB|atf:Ach5_45... *
+>Cluster 17
+0	168aa, >AH-TssB|ahj:V469_13... *
+>Cluster 18
+0	168aa, >PA2-TssB|paei:N296_... *
+>Cluster 19
+0	168aa, >VC-TssB|vcm:VCM66_A... *
+>Cluster 20
+0	167aa, >ACB-TssB|abaz:P795_... *
+>Cluster 21
+0	166aa, >EAEC1-TssB|eck:EC55... *
+>Cluster 22
+0	166aa, >YPE2-TssB|ype:YPO09... *
+1	166aa, >YPE3-TssB|ype:YPO14... at 97.59%
+2	166aa, >YPS2-TssB|ypi:YpsIP... at 100.00%
+3	166aa, >YPS3-TssB|ypi:YpsIP... at 95.18%
+4	166aa, >YPS5-TssB|ypi:YpsIP... at 100.00%
+>Cluster 23
+0	165aa, >YPE6-TssB|ype:YPO37... *
+1	165aa, >YPS1-TssB|ypi:YpsIP... at 100.00%
+>Cluster 24
+0	164aa, >BM5-TssB|bmal:DM55_... *
+1	164aa, >BPS4-TssB|bps:BPSS1... at 99.39%
+>Cluster 25
+0	161aa, >CJ-TssB|cjl:PJ17_05... *
+>Cluster 26
+0	158aa, >EAEC2-TssB|eck:EC55... *
+>Cluster 27
+0	154aa, >ET-TssB|etr:ETAE_24... *
