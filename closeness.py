@@ -402,9 +402,9 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,pout=None,ddout
         if pout!=None:
             cg.savefig(pout+".log.png")
         if ddout!=None:
-            with open("dendro.%s.log.pkl"%ddout,"w") as f:
+            with open("%s.dendro.log.pkl"%ddout,"w") as f:
                 pickle.dump(cg,f)
-            with open("dataframe.%s.log.pkl"%out,"w") as f:
+            with open("%s.dataframe.log.pkl"%out,"w") as f:
                 pickle.dump(dfDists,f)
         idxr=cg.dendrogram_row.reordered_ind
         idxc=cg.dendrogram_col.reordered_ind
@@ -419,9 +419,9 @@ def plot_closeness_heatmap(seqids,ali,delimiter=None,rename=None,pout=None,ddout
         if pout!=None:
             cg.savefig(pout+".png")
         if ddout!=None:
-            with open("dendro.%s.pkl"%ddout,"w") as f:
+            with open("%s.dendro.pkl"%ddout,"w") as f:
                 pickle.dump(cg,f)
-            with open("dataframe.%s.pkl"%ddout,"w") as f:
+            with open("%s.data.pkl"%ddout,"w") as f:
                 pickle.dump(dfDists,f)
     return dfDists, dfCount
 
@@ -540,7 +540,7 @@ def plot_closeness_barplot(seqidss,alis,legend,colors=None,limsy=[0,1],out=None,
                             ha='center', va='bottom')
     fig.tight_layout()
     if out!=None:
-        fig.savefig("test/output/"+out+".png")
+        fig.savefig(out+".png")
 
 def plot_closeness_barplots(seqidss,alis,legend,colors=None,limsy=[0,1],out=None,clusterings=None,annot=True):
     """
@@ -600,5 +600,6 @@ def plot_closeness_barplots(seqidss,alis,legend,colors=None,limsy=[0,1],out=None
         y0,y1 = ax.get_ylim()
         ax.xaxis.set_visible(False)
         ax.set_aspect(abs(x1-x0)/abs(y1-y0))
+    plt.legend()
     if out!=None:
-        fig.savefig("test/output/%s.png"%(out),bbox_inches='tight')
+        fig.savefig("%s.png"%(out),bbox_inches='tight')

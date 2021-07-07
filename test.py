@@ -174,8 +174,8 @@ closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,clu
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl")
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes)
 closeness.plot_closeness_heatmap(seqids=seqidss[0],ali=alis[0],rename=rename,pout="test/output/closeness.heatmap.renamed.clustering",clustering="test/data/test.seq_dict.pkl",subtypes=subtypes,log=True)
-closeness.plot_closeness_barplot(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="barplot")
-closeness.plot_closeness_barplots(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="barplots")
+closeness.plot_closeness_barplot(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="test/output/barplot")
+closeness.plot_closeness_barplots(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="test/output/barplots")
 pylab.show()
 print "\n-------------------- Closeness testing COMPLETE --------------------\n"
 
