@@ -1,4 +1,4 @@
-# Closeness metric
+# TssK-TssG interface
 
 Start by executing test.py with Python 2 (Python 2.7.18) to ensure that everything is working.
 
