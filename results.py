@@ -63,22 +63,18 @@ for pat in pathogens:
     seqidspats[pat]=seqidspat
 
 # Obtain the clusters of variants per each protein
-"""
 for i,l in enumerate(legend):
     print("Clustering of "+l)
     closeness.get_clustered_bins(seqidss[i],alis[i],rename=drenaming[i],outname='results/'+l+'.clusters')
-"""
 clusterings = ['results/'+l+'.clusters.pkl' for l in legend]
-"""
+
 # Obtain the EAEC TssK-TssG interface conservation (Figure 2C)
 EAEC3dic = {'EAEC3' : seqidspats["EAEC3"]}
 closeness.plot_closeness_barplots(seqidss=EAEC3dic,alis=alis,legend=legend,colors=colors,out="results/EAEC3.TssKGBbarplots",clusterings = clusterings,annot=True)
-"""
+
 # Obtain TssK-TssG interface for all pathogens (Supplementary Figure 4)
-#closeness.plot_closeness_barplots(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="results/ALLpathogens.TssKGBbarplots",clusterings = clusterings,annot=True)
+closeness.plot_closeness_barplots(seqidss=seqidspats,alis=alis,legend=legend,colors=colors,out="results/ALLpathogens.TssKGBbarplots",annot=True)
 
 # Obtain heatmaps for all TssK-TssG proteins and protein domains as well as for TssB (Figure 6 and Supplementary Figure 6B)
-
 for i,l in enumerate(legend):
     closeness.plot_closeness_heatmap(seqids=seqidss[i],ali=alis[i],clustering=clusterings[i],pout="results/heatmap.%s"%legend[i],ddout="results/heatmap.%s"%legend[i],rename=drenaming[i],subtypes=subtypes)
-    exit()
